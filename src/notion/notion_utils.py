@@ -164,7 +164,7 @@ def process_channels_list_data(results: list[dict[str, Any]]) -> list[str]:
     return channels_to_parse
 
 
-def format_telegram_stats_for_dataframe(  # noqa: C901
+def format_telegram_state_data(  # noqa: C901
     results_dict: dict[str, Any], handle: str
 ) -> pd.DataFrame:
     """
@@ -215,3 +215,61 @@ def format_telegram_stats_for_dataframe(  # noqa: C901
     state_data["date"] = pd.to_datetime(state_data["date"])
 
     return state_data
+
+
+def format_telegram_timeseries_data(
+    results_dict: dict[str, Any], handle: str
+) -> pd.DataFrame:
+    """
+    Format telegram stats response for timeseries_data DataFrame.
+    """
+
+    all_dates = set()
+    for graph_data in results_dict.values():
+        for entry in graph_data:
+            all_dates.add(entry["date"])
+
+    all_dates = sorted(all_dates)
+
+    timeseries_data = pd.DataFrame(
+        {"date": pd.to_datetime(all_dates), "handle": handle}
+    )
+
+    if "growth_graph" in results_dict:
+        growth_df = pd.DataFrame(results_dict["growth_graph"])
+        growth_df["date"] = pd.to_datetime(growth_df["date"])
+        growth_df = growth_df.rename(columns={"Total followers": "followers"})
+        timeseries_data = timeseries_data.merge(
+            growth_df[["date", "followers"]], on="date", how="left"
+        )
+    else:
+        timeseries_data["followers"] = 0
+
+    if "followers_graph" in results_dict:
+        followers_df = pd.DataFrame(results_dict["followers_graph"])
+        followers_df["date"] = pd.to_datetime(followers_df["date"])
+        followers_df = followers_df.rename(columns={"Joined": "joined", "Left": "left"})
+        timeseries_data = timeseries_data.merge(
+            followers_df[["date", "joined", "left"]], on="date", how="left"
+        )
+    else:
+        timeseries_data["joined"] = 0
+        timeseries_data["left"] = 0
+
+    if "mute_graph" in results_dict:
+        mute_df = pd.DataFrame(results_dict["mute_graph"])
+        mute_df["date"] = pd.to_datetime(mute_df["date"])
+        mute_df = mute_df.rename(columns={"Muted": "mute"})
+        timeseries_data = timeseries_data.merge(
+            mute_df[["date", "mute"]], on="date", how="left"
+        )
+    else:
+        timeseries_data["mute"] = 0
+
+    # Fill any remaining NaN values with 0 and ensure correct column order
+    timeseries_data = timeseries_data.fillna(0)
+    timeseries_data = timeseries_data[
+        ["date", "handle", "joined", "mute", "left", "followers"]
+    ]
+
+    return timeseries_data

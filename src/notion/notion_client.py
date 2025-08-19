@@ -40,6 +40,39 @@ class NotionClient:
 
         return results
 
+    async def is_present(self, database_id: str, handle: str, date: str) -> bool:
+        """
+        Checks if a page with the given handle and date is present in the database.
+        """
+        assert (
+            database_id is not None
+            and isinstance(database_id, str)
+            and len(database_id) > 0
+        ), "Database ID is not set"
+        assert handle is not None and isinstance(handle, str) and len(handle) > 0, (
+            "Handle is not set"
+        )
+        assert date is not None and isinstance(date, str) and len(date) > 0, (
+            "Date is not set"
+        )
+
+        client = cast(AsyncClient, self.client)
+
+        response = await client.databases.query(
+            database_id=database_id,
+            filter={
+                "and": [
+                    {"property": "Date", "date": {"equals": date}},
+                    {"property": "Handle", "rich_text": {"equals": handle}},
+                ],
+            },
+        )
+
+        results = response.get("results", None)
+        is_empty = results is None or len(results) == 0
+
+        return not is_empty
+
     async def get_channels_to_parse(self) -> list[str]:
         assert CHANNELS_LIST_DATABASE_ID is not None, (
             "Channels list database ID is not set"
