@@ -1,0 +1,73 @@
+[project]
+name = "telemetree-stratosphere-stats"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "aiohttp>=3.12.15",
+    "colorlog>=6.9.0",
+    "notion-client>=2.4.0",
+    "pandas>=2.3.1",
+    "python-dotenv>=1.1.1",
+    "telethon>=1.40.0",
+    "uvloop>=0.21.0",
+]
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+tag_format = "$version"
+version_scheme = "pep440"
+version_provider = "uv"
+update_changelog_on_bump = true
+major_version_zero = true
+
+# --- Ruff Configuration ---
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "C",  # mccabe
+    "B",  # bugbear
+    "UP", # pyupgrade
+]
+ignore = []  # Add any rules you want to ignore here
+
+[tool.isort]
+profile = "black"
+
+# --- Pyright Configuration (Used by Pylance) ---
+[tool.pyright]
+include = ["src"]
+exclude = [
+    "**/__pycache__",
+    "**/.*",
+    "**/.ipynb_checkpoints",
+    "**/node_modules",
+    "**/typestubs",
+    ".venv",
+    "build",
+    "dist",
+]
+typeCheckingMode = "strict"
+reportMissingImports = true
+reportMissingTypeStubs = false
+
+# --- Pytest Configuration ---
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "black>=25.1.0",
+    "commitizen>=4.8.3",
+    "ruff>=0.12.9",
+    "ty>=0.0.1a18",
+]
