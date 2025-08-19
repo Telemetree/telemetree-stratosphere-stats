@@ -44,6 +44,37 @@ class TelegramUserClient:
             api_hash,
         )
 
+    async def is_admin(self, channel_name: str) -> bool:
+        """
+        Check if the logged in user is an admin in a channel
+        """
+        assert self.client is not None, "Client is not initialized"
+        assert isinstance(self.client, TelegramClient), "Client is not a TelegramClient"
+        client = cast(TelegramClient, self.client)
+
+        async with client:
+            logger.info("Checking if user is an admin in %s", channel_name)
+            user_object = await client.get_me()
+            try:
+                permissions = await client.get_permissions(channel_name, user_object)
+
+                is_allowed = permissions is not None and permissions.is_admin
+
+                logger.info(
+                    "Logged in user is %s in %s",
+                    "an admin" if is_allowed else "not an admin",
+                    channel_name,
+                )
+
+                return is_allowed
+            except Exception as e:
+                logger.error(
+                    "Error checking if user is an admin in %s: %s",
+                    channel_name,
+                    e,
+                )
+                return False
+
     async def get_me(self) -> User | InputPeerUser:
         """
         Get the current user

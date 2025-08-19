@@ -1,5 +1,7 @@
 from typing import Any
 
+import pandas as pd
+
 from src.notion.notion_constants import (
     CHANNEL_TIMESERIES_DATE_ID,
     CHANNEL_TIMESERIES_HANDLE_ID,
@@ -135,3 +137,81 @@ def process_timeseries_data(
     }
 
     return timeseries_data
+
+
+def process_channels_list_data(results: list[dict[str, Any]]) -> list[str]:
+    """
+    Process the channels list data and transform into Notion expected format.
+    """
+    assert results is not None, "Results are not set"
+    channels_to_parse = []
+
+    for channel in results:
+        properties = channel.get("properties", None)
+        assert properties is not None, "Properties are not set"
+
+        handle = properties.get("Handle", None)
+        assert handle is not None, "Handle is not set"
+
+        handle_value = handle.get("title", None)
+        assert handle_value is not None, "Handle value is not set"
+
+        handle_value = handle_value[0].get("plain_text", None)
+        assert handle_value is not None, "Handle value is not set"
+
+        channels_to_parse.append(handle_value)
+
+    return channels_to_parse
+
+
+def format_telegram_stats_for_dataframe(  # noqa: C901
+    results_dict: dict[str, Any], handle: str
+) -> pd.DataFrame:
+    """
+    Format telegram stats response for state_data DataFrame.
+    """
+    rows = []
+
+    all_dates = set()
+    for metric_key, metric_data in results_dict.items():
+        for entry in metric_data:
+            # Extract date (assuming first key is the date)
+            date_key = next(iter(entry.keys()))
+            if (
+                date_key != metric_key.replace("_", " ").title()
+            ):  # Skip the duplicate value key
+                all_dates.add(date_key)
+
+    # Process each date
+    for date in sorted(all_dates):
+        row = {
+            "date": date,
+            "handle": handle,
+            "followers": None,
+            "reactions": None,
+            "views": None,
+            "shares": None,
+        }
+
+        # Extract values for this date from each metric
+        for metric_key, metric_data in results_dict.items():
+            for entry in metric_data:
+                if date in entry:
+                    if metric_key == "followers":
+                        row["followers"] = entry[date]
+                    elif metric_key == "reactions_per_post":
+                        row["reactions"] = entry[date]
+                    elif metric_key == "views_per_post":
+                        row["views"] = entry[date]
+                    elif metric_key == "shares_per_post":
+                        row["shares"] = entry[date]
+
+        rows.append(row)
+
+    # Create DataFrame
+    state_data = pd.DataFrame(rows)
+
+    # Convert date column to datetime if needed
+    state_data["date"] = pd.to_datetime(state_data["date"])
+
+    return state_data

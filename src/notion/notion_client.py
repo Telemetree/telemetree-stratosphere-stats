@@ -4,6 +4,8 @@ from typing import Any, cast
 from dotenv import load_dotenv
 from notion_client import AsyncClient
 
+from src.notion.notion_constants import CHANNELS_LIST_DATABASE_ID
+
 load_dotenv()
 
 
@@ -35,5 +37,20 @@ class NotionClient:
             parent={"database_id": database_id},
             properties=data,
         )
+
+        return results
+
+    async def get_channels_to_parse(self) -> list[str]:
+        assert CHANNELS_LIST_DATABASE_ID is not None, (
+            "Channels list database ID is not set"
+        )
+        assert isinstance(CHANNELS_LIST_DATABASE_ID, str), (
+            "Channels list database ID is not a string"
+        )
+        assert len(CHANNELS_LIST_DATABASE_ID) > 0, "Channels list database ID is empty"
+
+        client = cast(AsyncClient, self.client)
+
+        results = await client.databases.query(database_id=CHANNELS_LIST_DATABASE_ID)
 
         return results
