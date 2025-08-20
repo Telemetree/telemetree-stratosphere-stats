@@ -1,8 +1,10 @@
 import logging
+import os
 from typing import TYPE_CHECKING
 
 import pandas as pd
 import tqdm
+from dotenv import load_dotenv
 
 from src.notion.notion_constants import (
     CHANNEL_STATE_DATABASE_ID,
@@ -186,3 +188,20 @@ async def orchestrate():
         await upload_timeseries_data_to_notion(notion_client, channel_timeseries)
 
     logger.info("All channels processed")
+
+
+def run_checks():
+    load_dotenv()
+
+    telegram_api = os.getenv("TELEGRAM_API_ID")
+    telegram_api_hash = os.getenv("TELEGRAM_API_HASH")
+
+    notion_api = os.getenv("NOTION_API_KEY")
+
+    assert telegram_api is not None, "TELEGRAM_API_ID is not set in .env"
+    assert telegram_api_hash is not None, "TELEGRAM_API_HASH is not set in .env"
+    assert notion_api is not None, "NOTION_API_KEY is not set in .env"
+
+    logger.info("Telegram API ID is set")
+    logger.info("Telegram API Hash is set")
+    logger.info("Notion API Key is set")

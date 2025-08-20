@@ -8,6 +8,7 @@ import uvloop
 from src.notion.notion_client import NotionClient
 from src.orchestration import (
     process_telegram_channel,
+    run_checks,
     upload_state_data_to_notion,
     upload_timeseries_data_to_notion,
 )
@@ -21,14 +22,16 @@ async def run_async(debug: bool = False):
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
     configure_logging(level="DEBUG" if debug else "WARNING")
 
-    click.echo("Starting")
+    click.echo("Running .env checks")
+    run_checks()
+    click.echo("All .env checks passed")
 
     click.echo("Initializing clients")
 
     telegram_client = TelegramUserClient()
     notion_client = NotionClient()
 
-    click.echo("Getting channels to process...")
+    click.echo("Fetching channels to process...")
 
     channels_to_process = await notion_client.get_channels_to_parse()
 
