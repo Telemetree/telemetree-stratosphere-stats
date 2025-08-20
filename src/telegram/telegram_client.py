@@ -4,13 +4,12 @@ from typing import cast
 
 from dotenv import load_dotenv
 from telethon import TelegramClient
-from telethon.tl.functions.stats import LoadAsyncGraphRequest
 from telethon.tl.types import InputPeerUser, User
 from telethon.tl.types.stats import BroadcastStats, MegagroupStats
 
 from src.telegram.telegram_constants import TELEGRAM_SESSION_NAME
 
-logger = logging.getLogger("telemetree-stratosphere-stats.telegram.client")
+logger = logging.getLogger("telegram_client")
 
 load_dotenv()
 
@@ -114,26 +113,6 @@ class TelegramUserClient:
                 raise e from None
 
             return channel_stats
-
-    async def get_stats_graph(self, graph_token: str) -> None:
-        """
-        Get the stats graph
-        """
-        assert self.client is not None, "Client is not initialized"
-        assert isinstance(self.client, TelegramClient), "Client is not a TelegramClient"
-        assert graph_token is not None, "Graph token is not set"
-        assert isinstance(graph_token, str), "Graph token is not a string"
-        assert len(graph_token) > 0, "Graph token is empty"
-
-        client = cast(TelegramClient, self.client)
-
-        async with client:
-            try:
-                graph = await client(LoadAsyncGraphRequest(graph_token))
-                print(graph)
-            except Exception as e:
-                logger.error("Error getting stats graph: %s", e)
-                raise e from None
 
     async def process_broadcast_stats(self, broadcast_stats: BroadcastStats) -> None:
         """

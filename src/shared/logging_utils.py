@@ -1,5 +1,4 @@
 import logging
-import os
 
 import colorlog
 
@@ -12,10 +11,14 @@ LOG_COLORS = {
 }
 
 
-def configure_logging() -> None:
+def configure_logging(level: str = "DEBUG") -> None:
+    assert level is not None and isinstance(level, str) and len(level) > 0, (
+        "Level is not set"
+    )
+    level = level.upper()
+
     console_handler = colorlog.StreamHandler()
 
-    level = os.getenv("LOGGING_LEVEL", "DEBUG").upper()
     level = getattr(logging, level)
 
     log_format = "%(log_color)s%(levelname)-8s%(reset)s | %(asctime)s | %(name)s:%(funcName)s:%(lineno)d | %(message)s"  # noqa: E501

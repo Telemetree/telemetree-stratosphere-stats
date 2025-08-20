@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from notion_client import AsyncClient
 
 from src.notion.notion_constants import CHANNELS_LIST_DATABASE_ID
+from src.notion.notion_utils import process_channels_list_data
 
 load_dotenv()
 
@@ -16,9 +17,12 @@ class NotionClient:
         self.client = AsyncClient(auth=api_key)
 
     async def query_database(self, database_id: str) -> None:
-        assert database_id is not None, "Database ID is not set"
-        assert isinstance(database_id, str), "Database ID is not a string"
-        assert len(database_id) > 0, "Database ID is empty"
+        assert (
+            database_id is not None
+            and isinstance(database_id, str)
+            and len(database_id) > 0
+        ), "Database ID is not set"
+
         client = cast(AsyncClient, self.client)
 
         results = await client.databases.query(database_id=database_id)
@@ -26,9 +30,11 @@ class NotionClient:
         return results
 
     async def add_database_entry(self, database_id: str, data: dict[str, Any]) -> None:
-        assert database_id is not None, "Database ID is not set"
-        assert isinstance(database_id, str), "Database ID is not a string"
-        assert len(database_id) > 0, "Database ID is empty"
+        assert (
+            database_id is not None
+            and isinstance(database_id, str)
+            and len(database_id) > 0
+        ), "Database ID is not set"
         assert data is not None, "Data is not set"
 
         client = cast(AsyncClient, self.client)
@@ -74,16 +80,16 @@ class NotionClient:
         return not is_empty
 
     async def get_channels_to_parse(self) -> list[str]:
-        assert CHANNELS_LIST_DATABASE_ID is not None, (
-            "Channels list database ID is not set"
-        )
-        assert isinstance(CHANNELS_LIST_DATABASE_ID, str), (
-            "Channels list database ID is not a string"
-        )
-        assert len(CHANNELS_LIST_DATABASE_ID) > 0, "Channels list database ID is empty"
+        assert (
+            CHANNELS_LIST_DATABASE_ID is not None
+            and isinstance(CHANNELS_LIST_DATABASE_ID, str)
+            and len(CHANNELS_LIST_DATABASE_ID) > 0
+        ), "Channels list database ID is not set"
 
         client = cast(AsyncClient, self.client)
 
         results = await client.databases.query(database_id=CHANNELS_LIST_DATABASE_ID)
+
+        results = process_channels_list_data(results.get("results", None))
 
         return results

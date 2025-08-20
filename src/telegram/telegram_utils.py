@@ -9,7 +9,7 @@ from src.telegram.telegram_constants import (
     TELEGRAM_NAME_MAP,
 )
 
-logger = logging.getLogger("telemetree-stratosphere-stats.telegram.utils")
+logger = logging.getLogger("telegram_utils")
 
 
 def is_processable_graph(key: str, graph: dict[str, Any]) -> bool:
